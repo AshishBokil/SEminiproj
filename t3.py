@@ -3,11 +3,17 @@
 from tkinter import *
 from tkinter import ttk
 import time
+import mysql.connector
+from mysql.connector import Error
+#import sqlalchmey
 
+con=mysql.connector.connect(user='root',password='my123',host='localhost',database='Bills')
+c=con.cursor()
 
 _name_="_main_"
 #total=StringVar()
-sum=0
+sum="0" 
+
 
 
 class Begueradj(Frame):
@@ -42,10 +48,10 @@ class Begueradj(Frame):
         self.labelhead.grid(row=0)
 
 
-        self.dose_label = Label(self.parent, text = "Item ID:")
-        self.dose_entry = Entry(self.parent)
-        self.dose_label.grid(row = 1, column = 0, sticky = 'W')
-        self.dose_entry.grid(row = 1, column = 1)
+        self.id_label = Label(self.parent, text = "Item ID:")
+        self.id_entry = Entry(self.parent)
+        self.id_label.grid(row = 1, column = 0, sticky = 'W')
+        self.id_entry.grid(row = 1, column = 1)
 
         self.modified_label = Label(self.parent, text = "Date Modified:")
         self.labeldate=Label(self.parent,font=('arial',10,'bold'),text=self.localtime,fg="Black",bd='0',anchor='w')
@@ -60,18 +66,25 @@ class Begueradj(Frame):
 
 
         # Set the treeview
-        self.tree = ttk.Treeview( self.parent, columns=('Item ID','Price', 'Modification date'))
+        self.tree = ttk.Treeview( self.parent, columns=('Item NO','Item ID','Name', 'Brand','Price'))
+
         self.tree.heading('#0', text='Item NO')
         self.tree.heading('#1', text='Item ID')
-        self.tree.heading('#2', text='Price')
-        self.tree.heading('#3', text='Modification Date')
+        self.tree.heading('#2', text='Name')
+        self.tree.heading('#3', text='Brand')
+        self.tree.heading('#4', text='Price')
+        self.tree.heading('#5')
+
         self.tree.column('#0', stretch=YES)
         self.tree.column('#1', stretch=YES)
         self.tree.column('#2', stretch=YES)
         self.tree.column('#3', stretch=YES)
+        self.tree.column('#4', stretch=YES)
+        self.tree.column('#5',width=0 )
         self.tree.grid(row=15, columnspan=4, sticky='nsew')
         self.treeview = self.tree
         # Initialize the counter
+
         self.i = 1
 
 #total amount
@@ -93,9 +106,20 @@ class Begueradj(Frame):
         Insertion method.
         """
         global sum
-        self.treeview.insert('', 'end', text="Item_"+str(self.i), values=(self.dose_entry.get()+" mg",(self.i)*100, self.localtime))
+        c.execute("SELECT price from storage where item_id="+str(self.id_entry.get()))
+        cost=c.fetchone()
+      #  array=mysql_fetch_assoc(str(cost))
+
+        c.execute("SELECT name from storage where item_id="+str(self.id_entry.get()))
+        name=c.fetchone()
+
+        c.execute("SELECT company from storage where item_id="+str(self.id_entry.get()))
+        brand=c.fetchone()
+
+
+        self.treeview.insert('', 'end', text="Item_"+str(self.i), values=(self.id_entry.get(),name,brand,cost))
         # Increment counter
-        sum= sum + ((self.i)*100)
+        sum= sum + str(cost)
         self.dose_total = Label(self.parent, text = "TOal Amount:"+str(sum))
         self.dose_total.grid(row =20, column = 1, sticky = 'W')
 
@@ -111,7 +135,7 @@ class Begueradj(Frame):
 
 
 
-
+#cur.close()
 
 def main():
     root=Tk()
